@@ -11,7 +11,7 @@ import SwiftUI
 struct GourmetSearchApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SearchConditionView()
         }
     }
 }
