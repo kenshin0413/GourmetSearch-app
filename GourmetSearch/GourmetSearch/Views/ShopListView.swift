@@ -22,7 +22,7 @@ struct ShopListView: View {
         List {
             ForEach(viewModel.shops, id: \.id) { shop in
                 NavigationLink {
-                    // 今後、店舗詳細画面を追加予定
+                    ShopDetailView(shop: shop)
                 } label: {
                     ShopRowView(shop: shop)
                         .onAppear {
