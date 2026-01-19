@@ -33,7 +33,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
     }
-
+    
     // MARK: - 公開メソッド
     
     /// 位置情報の使用許可をリクエストする
