@@ -77,10 +77,6 @@ struct SearchConditionView: View {
     private var searchButtonSection: some View {
         Section {
             Button("検索する") {
-                // ★ 検索ボタンを押したタイミングで毎回条件を反映し、結果をリセット
-                resultViewModel.searchRange = resultViewModel.searchRange
-                resultViewModel.searchKeyword = resultViewModel.searchKeyword
-                
                 if let location = locationService.currentLocation {
                     Task {
                         await resultViewModel.startSearch(from: location)
