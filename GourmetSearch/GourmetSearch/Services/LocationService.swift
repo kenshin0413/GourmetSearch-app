@@ -22,7 +22,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     /// 位置情報取得時のエラーメッセージ
     @Published var errorMessage: String?
     
-    /// 取得した住所（例: 東京都 渋谷区 神南）
+    /// 取得した住所
     /// ※ 市の次の階層まで表示する
     @Published var addressText: String?
     

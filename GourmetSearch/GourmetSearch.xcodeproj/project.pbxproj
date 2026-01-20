@@ -10,9 +10,22 @@
 		94575D852F1C922500728AB5 /* GourmetSearch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GourmetSearch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		94575F042F1FCF4B00728AB5 /* Exceptions for "GourmetSearch" folder in "GourmetSearch" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 94575D842F1C922500728AB5 /* GourmetSearch */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		94575D872F1C922500728AB5 /* GourmetSearch */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				94575F042F1FCF4B00728AB5 /* Exceptions for "GourmetSearch" folder in "GourmetSearch" target */,
+			);
 			path = GourmetSearch;
 			sourceTree = "<group>";
 		};
@@ -255,6 +268,7 @@
 				DEVELOPMENT_TEAM = WJNB26R5VS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GourmetSearch/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "現在地周辺のレストランを検索するために位置情報を使用します。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -285,6 +299,7 @@
 				DEVELOPMENT_TEAM = WJNB26R5VS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GourmetSearch/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "現在地周辺のレストランを検索するために位置情報を使用します。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

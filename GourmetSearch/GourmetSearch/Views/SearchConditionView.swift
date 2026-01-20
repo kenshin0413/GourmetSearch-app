@@ -14,7 +14,7 @@ struct SearchConditionView: View {
     // MARK: - 状態管理
     
     /// 位置情報の取得・住所変換を管理するサービス
-    @StateObject private var locationService = LocationService()
+    @EnvironmentObject var locationService: LocationService
     
     /// 検索結果画面への遷移制御フラグ
     @State private var showResultScreen = false
@@ -67,8 +67,7 @@ struct SearchConditionView: View {
             // 検索実行後に結果画面へ遷移
             .navigationDestination(isPresented: $showResultScreen) {
                 ShopListView(
-                    viewModel: resultViewModel,
-                    location: locationService.currentLocation
+                    viewModel: resultViewModel
                 )
             }
         }
@@ -133,16 +132,16 @@ struct SearchConditionView: View {
                     Text(address)
                         .font(.body)
                         .lineLimit(1)
-                
-                // 位置情報が拒否されている場合
+                    
+                    // 位置情報が拒否されている場合
                 } else if locationService.authorizationStatus == .denied
                             || locationService.authorizationStatus == .restricted {
                     Text("位置情報が許可されていません")
                         .font(.body)
                         .foregroundStyle(.red)
                         .lineLimit(1)
-                
-                // 取得中
+                    
+                    // 取得中
                 } else {
                     Text("取得中…")
                         .font(.body)
