@@ -8,15 +8,14 @@
 import Foundation
 
 // https://app.quicktype.io
-// 上記のサイトを使用してAPIから返ってきたJSONに合う構造体を作成した
-// MARK: - HotPepperResponse
+// 上記のサイトを使用してAPIから返ってきたJSONに合う構造体を作成
 
+/// HotPepper API のレスポンス全体モデル
 struct HotPepperResponse: Codable {
     let results: Results
 }
 
-// MARK: - Results
-
+/// APIレスポンスの中身（検索結果情報）
 struct Results: Codable {
     let apiVersion: String
     let resultsAvailable: Int
@@ -24,6 +23,7 @@ struct Results: Codable {
     let resultsStart: Int
     let shop: [Shop]
     
+    // APIのキー名とSwiftのプロパティ名が異なるためマッピング定義
     enum CodingKeys: String, CodingKey {
         case apiVersion = "api_version"
         case resultsAvailable = "results_available"
@@ -33,8 +33,7 @@ struct Results: Codable {
     }
 }
 
-// MARK: - Shop
-
+/// 1店舗分の情報モデル
 struct Shop: Codable {
     let id, name: String
     let logoImage: String
@@ -76,6 +75,7 @@ struct Shop: Codable {
     let couponUrls: CouponUrls
     let course: String?
     
+    // APIのキー名とSwiftのプロパティ名が異なるためマッピング定義
     enum CodingKeys: String, CodingKey {
         case id, name
         case logoImage = "logo_image"
@@ -113,20 +113,17 @@ struct Shop: Codable {
     }
 }
 
-// MARK: - Budget
-
+/// 予算情報
 struct Budget: Codable {
     let code, name, average: String
 }
 
-// MARK: - CouponUrls
-
+/// クーポンURL情報
 struct CouponUrls: Codable {
     let pc, sp: String
 }
 
-// MARK: - Genre
-
+/// ジャンル情報
 struct Genre: Codable {
     let name: String
     let genreCatch: String
@@ -139,61 +136,65 @@ struct Genre: Codable {
     }
 }
 
-// MARK: - Area
-
+/// エリア情報
 struct Area: Codable {
     let code, name: String
 }
 
+/// JSONで数値と文字列のどちらも返るため、専用型で対応する
 enum PartyCapacity: Codable {
     case integer(Int)
     case string(String)
     
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        if let x = try? container.decode(Int.self) {
-            self = .integer(x)
+        
+        if let value = try? container.decode(Int.self) {
+            self = .integer(value)
             return
         }
-        if let x = try? container.decode(String.self) {
-            self = .string(x)
+        
+        if let value = try? container.decode(String.self) {
+            self = .string(value)
             return
         }
-        throw DecodingError.typeMismatch(PartyCapacity.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for PartyCapacity"))
+        
+        throw DecodingError.typeMismatch(
+            PartyCapacity.self,
+            DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "PartyCapacity は Int または String である必要があります"
+            )
+        )
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
+        
         switch self {
-        case .integer(let x):
-            try container.encode(x)
-        case .string(let x):
-            try container.encode(x)
+        case .integer(let value):
+            try container.encode(value)
+        case .string(let value):
+            try container.encode(value)
         }
     }
 }
 
-// MARK: - Photo
-
+/// 写真情報
 struct Photo: Codable {
     let pc: PC
     let mobile: Mobile
 }
 
-// MARK: - Mobile
-
 struct Mobile: Codable {
     let l, s: String
 }
-
-// MARK: - PC
 
 struct PC: Codable {
     let l, m, s: String
 }
 
-// MARK: - Urls
-
+/// 店舗URL情報
 struct Urls: Codable {
     let pc: String
 }

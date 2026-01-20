@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct GourmetSearchApp: App {
+    
+    @StateObject private var locationService = LocationService()
+    
     var body: some Scene {
         WindowGroup {
             SearchConditionView()
+                .environmentObject(locationService)
         }
     }
 }
