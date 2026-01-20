@@ -252,6 +252,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"GourmetSearch/Preview Content\"";
+				DEVELOPMENT_TEAM = WJNB26R5VS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "現在地周辺のレストランを検索するために位置情報を使用します。";
@@ -281,6 +282,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"GourmetSearch/Preview Content\"";
+				DEVELOPMENT_TEAM = WJNB26R5VS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "現在地周辺のレストランを検索するために位置情報を使用します。";
