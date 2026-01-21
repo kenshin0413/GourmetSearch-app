@@ -156,7 +156,7 @@ struct ShopRowView: View {
     
     // MARK: - 共通UI部品
     
-    /// 右上に表示するバッジUI
+    /// 検索結果画像の上に表示されてる距離と時間のパーツ
     private func badge(
         text: String,
         icon: String,

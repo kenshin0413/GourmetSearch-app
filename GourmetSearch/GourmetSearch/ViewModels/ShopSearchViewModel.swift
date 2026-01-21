@@ -52,24 +52,35 @@ final class ShopSearchViewModel: ObservableObject {
     // MARK: - 公開メソッド
     
     /// 初回検索
+    /// 検索条件をリセットして1ページ目から再取得する
     func startSearch(from location: CLLocation) async {
+        // ローディング状態をリセット
         isLoading = false
+        
         /// 1件目から検索し直す
         currentStartIndex = 1
         lastRequestedStartIndex = 0
+        
         /// 次ページ取得を許可
         canLoadMore = true
+        
         /// 前回の検索結果を削除
         shops.removeAll()
+        
         /// 1ページ目を取得
         await loadMoreShops(from: location)
     }
     
     /// 一覧の最後まで表示されたら次のデータを取得する
-    func loadMoreIfNeeded(currentShop: Shop, location: CLLocation) async {
+    func loadMoreIfNeeded(
+        currentShop: Shop,
+        location: CLLocation
+    ) async {
         guard let lastShop = shops.last else { return }
-        /// 表示中のセルが最後のセルだったら
+        
+        /// 表示中のセルが最後のセルだった場合のみ次のページを取得する
         guard currentShop.id == lastShop.id else { return }
+        
         /// 次のページを取得
         await loadMoreShops(from: location)
     }
@@ -100,20 +111,27 @@ final class ShopSearchViewModel: ObservableObject {
                 fetchCount: fetchCount
             )
             
-            // 取得した店舗データを一覧に追加する
-            shops.append(contentsOf: response.results.shop)
+            // 取得した店舗データ
+            let newShops = response.results.shop
             
-            // 次回取得する開始位置を更新する
-            let returnedCount = Int(response.results.resultsReturned) ?? 0
-            currentStartIndex += returnedCount
+            // 取得した店舗データを一覧に追加する
+            shops.append(contentsOf: newShops)
+            
+            // 実際に取得できた件数を使用する（APIの文字列より安全）
+            let returnedCount = newShops.count
             
             // 取得件数が0件なら、これ以上取得しない
-            canLoadMore = returnedCount > 0
+            if returnedCount == 0 {
+                canLoadMore = false
+            } else {
+                // 次回取得する開始位置を更新する
+                currentStartIndex += returnedCount
+            }
             
         } catch {
             // 通信エラー発生時のエラーメッセージを保持する
             errorMessage = error.localizedDescription
-            print(error.localizedDescription)
+            print("❌ Shop fetch error:", error.localizedDescription)
         }
         
         // ローディング状態を解除する

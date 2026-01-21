@@ -19,9 +19,6 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     /// 位置情報の利用許可状態
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     
-    /// 位置情報取得時のエラーメッセージ
-    @Published var errorMessage: String?
-    
     /// 取得した住所
     /// ※ 市の次の階層まで表示する
     @Published var addressText: String?
@@ -30,6 +27,9 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     
     private let locationManager = CLLocationManager()
     private let geocoder = CLGeocoder()
+    
+    /// 住所解決済みフラグ（多重実行防止）
+    private var hasResolvedAddress = false
     
     // MARK: - 初期化
     
@@ -50,15 +50,13 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         
         switch authorizationStatus {
         case .notDetermined:
-            // まだ許可されていない場合はダイアログを表示
             locationManager.requestWhenInUseAuthorization()
             
         case .authorizedWhenInUse, .authorizedAlways:
-            // すでに許可されている場合はすぐ位置取得
             startUpdatingLocation()
             
         case .denied, .restricted:
-            errorMessage = "位置情報の使用が許可されていません"
+            break
             
         @unknown default:
             break
@@ -69,7 +67,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     
     /// 位置情報の取得を開始する（許可後に呼ばれる）
     private func startUpdatingLocation() {
-        errorMessage = nil
+        hasResolvedAddress = false
         locationManager.startUpdatingLocation()
     }
     
@@ -80,7 +78,9 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     
     /// 緯度・経度から住所（都道府県・市・市の次の階層）を取得する
     private func reverseGeocode(location: CLLocation) {
-        geocoder.reverseGeocodeLocation(location) { placemarks, error in
+        geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
+            guard let self else { return }
+            
             if let error {
                 print("Geocode error:", error.localizedDescription)
                 return
@@ -88,10 +88,9 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
             
             guard let placemark = placemarks?.first else { return }
             
-            // 住所構成要素
-            let prefecture = placemark.administrativeArea   // 都道府県
-            let city = placemark.locality                   // 市
-            let subArea = placemark.subLocality             // 区・町など（市の次の階層）
+            let prefecture = placemark.administrativeArea
+            let city = placemark.locality
+            let subArea = placemark.subLocality
             
             let address = [
                 prefecture,
@@ -109,37 +108,48 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     
     // MARK: - CLLocationManagerDelegate
     
-    /// 位置情報の許可状態が変更されたときに呼ばれる
+    /// 位置情報の利用許可状態が変更されたときに呼ばれる
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        // 現在の許可状態を保持
         authorizationStatus = manager.authorizationStatus
         
         switch authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
-            // 許可されたら自動で位置取得
+            // 位置情報の利用が許可されたら、現在地の取得を開始する
             startUpdatingLocation()
             
-        case .denied, .restricted:
-            errorMessage = "位置情報の使用が許可されていません"
-            
         default:
+            // 未許可・制限中の場合は特に処理しない
             break
         }
     }
     
     /// 位置情報の取得に成功したときに呼ばれる
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    func locationManager(
+        _ manager: CLLocationManager,
+        didUpdateLocations locations: [CLLocation]
+    ) {
+        // 最新の位置情報を取得
         guard let location = locations.first else { return }
         currentLocation = location
         
-        // 住所を取得
+        // 精度更新などで複数回呼ばれるケースを防ぐ
+        guard !hasResolvedAddress else { return }
+        hasResolvedAddress = true
+        
+        // 緯度・経度から住所を取得する
         reverseGeocode(location: location)
         
-        // バッテリー節約のため停止
+        // バッテリー消費を抑えるため、位置情報の更新を停止する
         stopUpdatingLocation()
     }
     
     /// 位置情報の取得に失敗したときに呼ばれる
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        errorMessage = error.localizedDescription
+    func locationManager(
+        _ manager: CLLocationManager,
+        didFailWithError error: Error
+    ) {
+        // 取得失敗時のエラー内容をログ出力（デバッグ用）
+        print("Location error:", error.localizedDescription)
     }
 }
