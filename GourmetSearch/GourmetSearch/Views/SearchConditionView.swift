@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  SearchConditionView.swift
 //  GourmetSearch
 //
 //  Created by miyamotokenshin on R 8/01/18.

@@ -15,33 +15,51 @@ enum BusinessHoursParser {
         text: String
     ) -> Bool? {
         
-        // "11:00～23:00" / "18:00～翌2:00" をざっくり分解
-        let pattern = #"(\d{1,2}:\d{2}).*?(翌)?(\d{1,2}:\d{2})"#
-        guard
-            let regex = try? NSRegularExpression(pattern: pattern),
-            let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-            let startRange = Range(match.range(at: 1), in: text),
-            let endRange = Range(match.range(at: 3), in: text)
-        else {
+        // 区切り文字を統一（全角・半角対策）
+        let normalized = text
+            .replacingOccurrences(of: "〜", with: "-")
+            .replacingOccurrences(of: "～", with: "-")
+        
+        // "11:00-14:00 / 17:00-23:00" などから全時間帯を抽出
+        let pattern = #"(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else {
             return nil
         }
         
-        let startMinutes = minutes(from: String(text[startRange]))
-        let endMinutes   = minutes(from: String(text[endRange]))
-        let nowMinutes   = currentMinutes(from: now)
+        let matches = regex.matches(
+            in: normalized,
+            range: NSRange(normalized.startIndex..., in: normalized)
+        )
         
-        guard let start = startMinutes, let end = endMinutes else {
-            return nil
+        // 時間帯が1つも取れない場合は判定不能
+        guard !matches.isEmpty else { return nil }
+        
+        let nowMinutes = currentMinutes(from: now)
+        
+        for match in matches {
+            guard
+                let startRange = Range(match.range(at: 1), in: normalized),
+                let endRange   = Range(match.range(at: 2), in: normalized),
+                let start = minutes(from: String(normalized[startRange])),
+                let end   = minutes(from: String(normalized[endRange]))
+            else {
+                continue
+            }
+            
+            // 翌日跨ぎ（例: 18:00-02:00）
+            if end < start {
+                if nowMinutes >= start || nowMinutes <= end {
+                    return true
+                }
+            }
+            // 通常時間帯
+            else if (start...end).contains(nowMinutes) {
+                return true
+            }
         }
         
-        // 翌日営業 or 終了時刻が開始より小さい場合
-        if end < start {
-            // 例: 18:00〜02:00
-            return nowMinutes >= start || nowMinutes <= end
-        } else {
-            // 通常: 11:00〜23:00
-            return (start...end).contains(nowMinutes)
-        }
+        // どの時間帯にも該当しなければ営業時間外
+        return false
     }
     
     /// "HH:mm" → 分(Int) に変換
