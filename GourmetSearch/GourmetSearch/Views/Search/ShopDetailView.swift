@@ -96,7 +96,7 @@ struct ShopDetailView: View {
     
     /// お気に入り状態
     private var isFavorite: Bool {
-        favoriteStore.isFavorite(shop)
+        favoriteStore.isFavorite(id: shop.id)
     }
     
     // MARK: - 画面構成
@@ -158,8 +158,8 @@ struct ShopDetailView: View {
         
         // メッセージ切り替え
         toastMessage = wasFavorite
-            ? "お気に入りから削除しました"
-            : "お気に入りに追加しました"
+        ? "お気に入りから削除しました"
+        : "お気に入りに追加しました"
         
         // トースト表示
         withAnimation {

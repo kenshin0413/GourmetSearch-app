@@ -6,40 +6,119 @@
 //
 
 import Foundation
+import CoreData
 
-/// お気に入り店舗を管理するストア
+/// お気に入り店舗を管理するストアクラス
+/// CoreData を利用して永続化・読み込み・追加・削除を行う
+@MainActor
 final class FavoriteStore: ObservableObject {
     
-    /// お気に入り店舗一覧
+    // MARK: - 公開プロパティ
+    
+    /// 画面が監視するお気に入り店舗一覧
+    /// 変更されるとUIが自動的に更新される
     @Published private(set) var favorites: [Shop] = []
     
-    /// 指定した店舗がお気に入りかどうか
-    func isFavorite(_ shop: Shop) -> Bool {
-        favorites.contains { $0.id == shop.id }
+    // MARK: - 内部プロパティ
+    
+    /// CoreData の操作に使用するコンテキスト
+    private let context: NSManagedObjectContext
+    
+    // MARK: - 初期化
+    
+    /// 初期化時に CoreData からお気に入りを読み込む
+    init(context: NSManagedObjectContext) {
+        self.context = context
+        loadFavorites()
     }
     
-    /// お気に入り追加
+    // MARK: - 読み込み処理
+    
+    /// CoreData からお気に入り店舗を取得する
+    /// 作成日時の降順で並び替える
+    func loadFavorites() {
+        let request = FavoriteShopEntity.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "createdAt", ascending: false)
+        ]
+        
+        do {
+            let entities = try context.fetch(request)
+            
+            /// Entity → Shop に変換して保持する
+            favorites = entities.compactMap { Shop(entity: $0) }
+        } catch {
+            print("❌ Favorite fetch error:", error.localizedDescription)
+            favorites = []
+        }
+    }
+    
+    // MARK: - 状態判定
+    
+    /// 指定した店舗IDがお気に入りに登録されているか判定する
+    func isFavorite(id: String) -> Bool {
+        favorites.contains { $0.id == id }
+    }
+    
+    // MARK: - 追加・削除処理
+    
+    /// お気に入りに店舗を追加する
     func add(_ shop: Shop) {
-        guard !isFavorite(shop) else { return }
-        favorites.append(shop)
+        /// すでに登録済みの場合は何もしない
+        guard !isFavorite(id: shop.id) else { return }
+        
+        let entity = FavoriteShopEntity(context: context)
+        shop.apply(to: entity)
+        entity.createdAt = Date()
+        
+        saveAndReload()
     }
     
-    /// お気に入り削除
-    func remove(_ shop: Shop) {
-        favorites.removeAll { $0.id == shop.id }
+    /// 指定したIDの店舗をお気に入りから削除する
+    func remove(id: String) {
+        let request = FavoriteShopEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id)
+        request.fetchLimit = 1
+        
+        do {
+            let result = try context.fetch(request)
+            if let entity = result.first {
+                context.delete(entity)
+                saveAndReload()
+            }
+        } catch {
+            print("❌ Favorite delete error:", error.localizedDescription)
+        }
     }
     
-    /// IndexSet指定で削除
+    /// IndexSet を指定して複数件削除する
     func remove(at offsets: IndexSet) {
-        favorites.remove(atOffsets: offsets)
+        let ids = offsets.compactMap { index in
+            favorites.indices.contains(index) ? favorites[index].id : nil
+        }
+        ids.forEach { remove(id: $0) }
     }
     
-    /// 追加・削除をトグル
+    /// お気に入りの追加・削除を切り替える
     func toggle(_ shop: Shop) {
-        if isFavorite(shop) {
-            remove(shop)
+        if isFavorite(id: shop.id) {
+            remove(id: shop.id)
         } else {
             add(shop)
+        }
+    }
+    
+    // MARK: - 保存処理
+    
+    /// CoreData に保存し、再読み込みする
+    private func saveAndReload() {
+        do {
+            if context.hasChanges {
+                try context.save()
+            }
+            loadFavorites()
+        } catch {
+            print("❌ CoreData save error:", error.localizedDescription)
         }
     }
 }
