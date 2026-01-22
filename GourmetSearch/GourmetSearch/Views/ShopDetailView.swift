@@ -18,6 +18,17 @@ struct ShopDetailView: View {
     /// 現在地サービス（距離計算に使用）
     @EnvironmentObject private var locationService: LocationService
     
+    /// お気に入り管理ストア
+    @EnvironmentObject private var favoriteStore: FavoriteStore
+    
+    // MARK: - トースト表示制御
+    
+    /// トースト表示フラグ
+    @State private var showToast = false
+    
+    /// トーストに表示するメッセージ
+    @State private var toastMessage = ""
+    
     // MARK: - URL関連
     
     /// Apple Maps で住所検索するURL
@@ -81,38 +92,91 @@ struct ShopDetailView: View {
         }
     }
     
+    // MARK: - お気に入り状態
+    
+    /// お気に入り状態
+    private var isFavorite: Bool {
+        favoriteStore.isFavorite(shop)
+    }
+    
     // MARK: - 画面構成
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 18) {
-                
-                // メイン画像
-                heroImage
-                
-                // 店舗名・バッジ表示
-                headerSection
-                
-                // 地図・公式サイトボタン
-                actionSection
-                
-                // 詳細情報カード
-                infoSection
-                
-                Spacer(minLength: 12)
+        ZStack {
+            ScrollView {
+                VStack(spacing: 18) {
+                    
+                    heroImage
+                    headerSection
+                    actionSection
+                    infoSection
+                    
+                    Spacer(minLength: 12)
+                }
+                .padding(.bottom, 24)
             }
-            .padding(.bottom, 24)
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("店舗詳細")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        handleFavoriteTapped()
+                    } label: {
+                        Image(systemName: isFavorite ? "star.fill" : "star")
+                            .foregroundStyle(isFavorite ? Color.yellow : Color.primary)
+                    }
+                }
+            }
+            
+            // MARK: - トースト表示
+            
+            if showToast {
+                VStack {
+                    Spacer()
+                    
+                    Text(toastMessage)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 16)
+                        .background(Color.black.opacity(0.8))
+                        .clipShape(Capsule())
+                        .padding(.bottom, 24)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .animation(.easeInOut, value: showToast)
+            }
         }
-        .background(Color(.systemGroupedBackground))
-        .navigationTitle("店舗詳細")
-        .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    // MARK: - お気に入りボタン処理
+    
+    private func handleFavoriteTapped() {
+        let wasFavorite = isFavorite
+        favoriteStore.toggle(shop)
+        
+        // メッセージ切り替え
+        toastMessage = wasFavorite
+            ? "お気に入りから削除しました"
+            : "お気に入りに追加しました"
+        
+        // トースト表示
+        withAnimation {
+            showToast = true
+        }
+        
+        // 2秒後に自動で非表示
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                showToast = false
+            }
+        }
     }
     
     // MARK: - メイン画像
     
-    /// 店舗のメイン画像を表示する
     private var heroImage: some View {
-        /// 非同期で画像を表示
         AsyncImage(url: URL(string: shop.photo.pc.l)) { image in
             image
                 .resizable()
@@ -134,16 +198,13 @@ struct ShopDetailView: View {
     
     // MARK: - ヘッダー表示
     
-    /// 店舗名・キャッチコピー・バッジを表示するエリア
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             
-            // 店舗名
             Text(shop.name)
                 .font(.title2.weight(.bold))
                 .lineLimit(3)
             
-            // キャッチコピー
             if !shop.shopCatch.isEmpty {
                 Text(shop.shopCatch)
                     .font(.subheadline)
@@ -151,10 +212,8 @@ struct ShopDetailView: View {
                     .lineLimit(4)
             }
             
-            // バッジ表示
             HStack(spacing: 8) {
                 
-                // 距離
                 if let distanceText {
                     badge(
                         text: distanceText,
@@ -162,7 +221,6 @@ struct ShopDetailView: View {
                     )
                 }
                 
-                // 営業状態
                 if let status = openingStatus {
                     badge(
                         text: status.text,
@@ -170,7 +228,6 @@ struct ShopDetailView: View {
                     )
                 }
                 
-                // 予算
                 if !shop.budget.average.isEmpty {
                     badge(
                         text: "予算 \(shop.budget.average)",
@@ -186,11 +243,9 @@ struct ShopDetailView: View {
     
     // MARK: - アクションボタンエリア
     
-    /// 地図・公式サイトボタンを表示するエリア
     private var actionSection: some View {
         HStack(spacing: 12) {
             
-            // 地図で開く
             if let mapsURL {
                 Link(destination: mapsURL) {
                     actionButton(
@@ -200,7 +255,6 @@ struct ShopDetailView: View {
                 }
             }
             
-            // 公式サイトを開く
             if let websiteURL {
                 Link(destination: websiteURL) {
                     actionButton(
@@ -215,11 +269,9 @@ struct ShopDetailView: View {
     
     // MARK: - 詳細情報カード表示
     
-    /// 住所・営業時間・支払い情報などをカード形式で表示する
     private var infoSection: some View {
         VStack(spacing: 12) {
             
-            // 住所・アクセス
             InfoCard {
                 InfoRow(
                     title: "住所",
@@ -236,7 +288,6 @@ struct ShopDetailView: View {
                 )
             }
             
-            // 営業時間・予算
             InfoCard {
                 InfoRow(
                     title: "営業時間",
@@ -253,7 +304,6 @@ struct ShopDetailView: View {
                 )
             }
             
-            // カード・駐車場
             InfoCard {
                 InfoRow(
                     title: "カード",
@@ -275,7 +325,6 @@ struct ShopDetailView: View {
     
     // MARK: - バッジ表示UI
     
-    /// 距離・営業状態・予算などを表示する共通バッジUI
     private func badge(
         text: String,
         background: Color
@@ -291,7 +340,6 @@ struct ShopDetailView: View {
     
     // MARK: - アクションボタンUI
     
-    /// 詳細画面で使用するアクションボタンUI（地図ボタンと公式サイトボタン）
     private func actionButton(
         title: String,
         icon: String

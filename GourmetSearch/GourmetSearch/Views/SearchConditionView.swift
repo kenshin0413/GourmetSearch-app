@@ -35,30 +35,39 @@ struct SearchConditionView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 18) {
-                    
-                    // グラデーション付きのヒーローヘッダー
-                    header
-                    
-                    // 現在地を表示する
-                    locationPill
-                    
-                    // キーワード入力欄
-                    searchBar
-                    
-                    // 検索範囲（距離）選択チップ
-                    rangeChips
-                    
-                    // 人気キーワードのクイック選択
-                    quickTags
-                    
-                    // 検索実行ボタン
-                    searchButton
+            VStack(spacing: 0) {
+                
+                // MARK: - 固定ヘッダー
+                
+                header
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 6)
+                
+                // MARK: - スクロール領域
+                
+                ScrollView {
+                    VStack(spacing: 18) {
+                        
+                        // 現在地を表示する
+                        locationPill
+                        
+                        // キーワード入力欄
+                        searchBar
+                        
+                        // 検索範囲（距離）選択チップ
+                        rangeChips
+                        
+                        // 人気キーワードのクイック選択
+                        quickTags
+                        
+                        // 検索実行ボタン
+                        searchButton
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 24)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 24)
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("グルメサーチ")
@@ -127,21 +136,16 @@ struct SearchConditionView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 
-                // 住所取得済み
                 if let address = locationService.addressText, !address.isEmpty {
                     Text(address)
                         .font(.body)
                         .lineLimit(1)
-                    
-                    // 位置情報が拒否されている場合
                 } else if locationService.authorizationStatus == .denied
                             || locationService.authorizationStatus == .restricted {
                     Text("位置情報が許可されていません")
                         .font(.body)
                         .foregroundStyle(.red)
                         .lineLimit(1)
-                    
-                    // 取得中
                 } else {
                     Text("取得中…")
                         .font(.body)
@@ -152,7 +156,6 @@ struct SearchConditionView: View {
             
             Spacer()
             
-            // 取得中のみインジケーター表示
             if locationService.addressText == nil &&
                 !(locationService.authorizationStatus == .denied
                   || locationService.authorizationStatus == .restricted) {
@@ -166,7 +169,6 @@ struct SearchConditionView: View {
     
     // MARK: - キーワード入力欄
     
-    /// 店名・ジャンルなどを自由入力できる検索バー
     private var searchBar: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("キーワード")
@@ -176,14 +178,10 @@ struct SearchConditionView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
                 
-                // 検索キーワード入力フィールド
                 TextField("例：カフェ / ラーメン / 居酒屋", text: $resultViewModel.searchKeyword)
-                // ユーザーの入力通りに表示
                     .textInputAutocapitalization(.never)
-                // 予測変換無効
                     .autocorrectionDisabled(true)
                 
-                // 入力済みの場合はクリアボタンを表示
                 if !resultViewModel.searchKeyword.isEmpty {
                     Button {
                         resultViewModel.searchKeyword = ""
@@ -203,13 +201,11 @@ struct SearchConditionView: View {
     
     // MARK: - 検索範囲選択
     
-    /// 検索半径をチップ形式で選択するUI
     private var rangeChips: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("検索範囲")
                 .font(.headline)
             
-            /// APIに渡す距離値と表示ラベルの対応表
             let items: [(Int, String)] = [
                 (1, "300m"),
                 (2, "500m"),
@@ -226,12 +222,10 @@ struct SearchConditionView: View {
         }
     }
     
-    /// 個々の距離チップUI
     private func rangeChip(value: Int, title: String) -> some View {
         let isSelected = (resultViewModel.searchRange == value)
         
         return Button {
-            // 選択された検索範囲をViewModelに反映
             resultViewModel.searchRange = value
         } label: {
             Text(title)
@@ -247,7 +241,6 @@ struct SearchConditionView: View {
     
     // MARK: - クイックキーワード
     
-    /// 人気ジャンルをワンタップで入力できるタグUI
     private var quickTags: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("人気の検索")
@@ -268,10 +261,8 @@ struct SearchConditionView: View {
         }
     }
     
-    /// 個々のキーワードタグ
     private func keywordTag(_ word: String) -> some View {
         Button {
-            // タップしたキーワードを検索条件にセット
             resultViewModel.searchKeyword = word
         } label: {
             Text(word)
@@ -286,10 +277,8 @@ struct SearchConditionView: View {
     
     // MARK: - 検索実行ボタン
     
-    /// 現在地と検索条件をもとに検索を開始するボタン
     private var searchButton: some View {
         Button {
-            // 位置情報が取得できている場合のみ検索を実行
             if let location = locationService.currentLocation {
                 Task {
                     await resultViewModel.startSearch(from: location)
@@ -313,8 +302,6 @@ struct SearchConditionView: View {
         .padding(.top, 6)
     }
     
-    /// 検索実行可能かどうかの判定
-    /// 現在地が取得できているかで制御する
     private var canSearch: Bool {
         locationService.currentLocation != nil
     }
