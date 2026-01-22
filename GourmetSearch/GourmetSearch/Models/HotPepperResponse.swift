@@ -18,13 +18,11 @@ struct HotPepperResponse: Codable {
 /// APIレスポンスの中身
 struct Results: Codable {
     let resultsAvailable: Int
-    let resultsReturned: String
     let resultsStart: Int
     let shop: [Shop]
     
     enum CodingKeys: String, CodingKey {
         case resultsAvailable = "results_available"
-        case resultsReturned  = "results_returned"
         case resultsStart     = "results_start"
         case shop
     }
@@ -78,6 +76,70 @@ struct Shop: Codable, Identifiable {
         case genre, budget
         case photo, urls
         case card, parking
+    }
+}
+
+// MARK: - CoreData変換
+
+extension Shop {
+    
+    /// Entity → Shop
+    init?(entity: FavoriteShopEntity) {
+        guard
+            let id = entity.id,
+            let name = entity.name,
+            let address = entity.address
+        else { return nil }
+        
+        self.id = id
+        self.name = name
+        self.address = address
+        self.stationName = entity.stationName ?? ""
+        
+        self.lat = entity.lat
+        self.lng = entity.lng
+        
+        self.access = entity.access ?? ""
+        self.shopOpen = entity.shopOpen ?? ""
+        self.shopCatch = entity.shopCatch ?? ""
+        
+        self.genre = Genre(name: entity.genreName ?? "")
+        self.budget = Budget(name: "", average: entity.budgetAverage ?? "")
+        
+        let pc = PC(l: entity.photoPCURL ?? "")
+        let mobile = Mobile(l: entity.photoMobileURL ?? "")
+        self.photo = Photo(pc: pc, mobile: mobile)
+        
+        self.urls = Urls(pc: entity.websiteURL ?? "")
+        
+        self.card = entity.card ?? ""
+        self.parking = entity.parking ?? ""
+    }
+    
+    /// Shop → Entity
+    func apply(to entity: FavoriteShopEntity) {
+        entity.id = self.id
+        entity.name = self.name
+        entity.address = self.address
+        entity.stationName = self.stationName
+        
+        entity.lat = self.lat
+        entity.lng = self.lng
+        
+        entity.access = self.access
+        entity.shopOpen = self.shopOpen
+        entity.shopCatch = self.shopCatch
+        
+        entity.genreName = self.genre.name
+        entity.budgetAverage = self.budget.average
+        
+        entity.photoMobileURL = self.photo.mobile.l
+        entity.photoPCURL = self.photo.pc.l
+        
+        entity.websiteURL = self.urls.pc
+        
+        entity.card = self.card
+        entity.parking = self.parking
     }
 }
 

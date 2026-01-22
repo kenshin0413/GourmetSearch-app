@@ -110,7 +110,7 @@ struct FavoriteListView: View {
     
     private var favoriteHeader: some View {
         ZStack(alignment: .leading) {
-
+            
             LinearGradient(
                 gradient: Gradient(stops: [
                     .init(color: Color(red: 0.70, green: 0.45, blue: 0.12), location: 0.00),
@@ -121,7 +121,7 @@ struct FavoriteListView: View {
                 startPoint: .leading,
                 endPoint: .trailing
             )
-
+            
             HStack(spacing: 14) {
                 Image(systemName: "star.fill")
                     .font(.system(size: 30, weight: .semibold))
