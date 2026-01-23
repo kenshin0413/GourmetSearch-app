@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// 店舗検索結果を一覧表示する画面
+/// 店舗検索結果を一覧表示する画面。
 struct ShopListView: View {
     
     /// 検索結果と読み込み状態を管理する ViewModel
@@ -20,7 +20,7 @@ struct ShopListView: View {
         ScrollView {
             LazyVStack(spacing: 14, pinnedViews: [.sectionHeaders]) {
                 
-                // 上部に固定表示される検索条件エリア
+                // 検索条件エリア（上部固定表示）
                 Section(header: pinnedHeader) {
                     
                     // 検索結果が空の場合の表示
@@ -39,7 +39,7 @@ struct ShopListView: View {
                                     shop: shop,
                                     userLocation: locationService.currentLocation
                                 )
-                                // セルが表示されたタイミングで追加読み込み判定
+                                // セルが表示されたタイミングで追加読み込みを判定
                                 .onAppear {
                                     guard let location = locationService.currentLocation else { return }
                                     
@@ -74,7 +74,6 @@ struct ShopListView: View {
         .navigationTitle("検索結果")
         .navigationBarTitleDisplayMode(.inline)
         
-        // 画面を下に引っ張って再検索（現在地が取得できている場合のみ）
         .refreshable {
             guard let location = locationService.currentLocation else { return }
             await viewModel.startSearch(from: location)
@@ -83,7 +82,7 @@ struct ShopListView: View {
     
     // MARK: - 固定表示ヘッダー
     
-    /// 検索条件と状態を表示する固定ヘッダー
+    /// 検索条件と状態を表示する固定ヘッダー。
     private var pinnedHeader: some View {
         VStack(spacing: 10) {
             
@@ -129,7 +128,7 @@ struct ShopListView: View {
                 }
             }
             
-            // 検索条件チップの横スクロール表示
+            // 検索条件チップ（横スクロール）
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     
@@ -170,7 +169,7 @@ struct ShopListView: View {
         .padding(.bottom, 4)
     }
     
-    /// 検索条件チップの共通UI
+    /// 検索条件チップの共通UI。
     private func conditionChip(icon: String, title: String) -> some View {
         HStack(spacing: 6) {
             Image(systemName: icon)
@@ -188,7 +187,7 @@ struct ShopListView: View {
         .clipShape(RoundedRectangle(cornerRadius: 999))
     }
     
-    /// 検索範囲の数値を表示用テキストに変換する
+    /// 検索範囲の数値を表示用テキストに変換する。
     private func rangeText(_ range: Int) -> String {
         switch range {
         case 1: return "300m"
@@ -202,7 +201,7 @@ struct ShopListView: View {
     
     // MARK: - 検索結果が空のときの表示
     
-    /// 検索結果が0件だった場合に表示するUI
+    /// 検索結果が0件だった場合に表示するUI。
     private var emptyState: some View {
         VStack(spacing: 12) {
             Image(systemName: "magnifyingglass")

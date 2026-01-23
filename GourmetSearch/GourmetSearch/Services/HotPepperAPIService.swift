@@ -33,11 +33,6 @@ final class HotPepperAPIService {
         fetchCount: Int
     ) async throws -> HotPepperResponse {
         
-        // APIキーが設定されていない場合は即クラッシュさせる
-        guard !apiKey.isEmpty else {
-            fatalError("❌ HOTPEPPER_API_KEY が Info.plist に設定されていません")
-        }
-        
         var components = URLComponents(string: baseUrl)!
         components.queryItems = [
             URLQueryItem(name: "key", value: apiKey),
@@ -59,18 +54,8 @@ final class HotPepperAPIService {
             throw URLError(.badURL)
         }
         
-        // リクエストURLをログ出力（デバッグ用）
-        print("📡 Request URL:", url.absoluteString)
-        
         let (data, _) = try await URLSession.shared.data(from: url)
-        
-        // レスポンスJSONをログ出力（デバッグ用）
-        if let jsonString = String(data: data, encoding: .utf8) {
-            print("📦 Response JSON:", jsonString)
-        }
-        
         let result = try JSONDecoder().decode(HotPepperResponse.self, from: data)
-        print("✅ 取得件数:", result.results.shop.count)
         
         return result
     }

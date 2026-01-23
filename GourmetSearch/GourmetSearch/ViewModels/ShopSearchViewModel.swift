@@ -5,8 +5,8 @@
 //  Created by miyamotokenshin on R 8/01/19.
 //
 
-import Foundation
 import CoreLocation
+import Foundation
 
 /// 店舗検索の状態管理とAPI通信を担当するViewModel。
 /// 検索条件・検索結果・ページング制御を管理する。
@@ -117,7 +117,7 @@ final class ShopSearchViewModel: ObservableObject {
             // 取得した店舗データを一覧に追加する
             shops.append(contentsOf: newShops)
             
-            // 実際に取得できた件数を使用する（APIの文字列より安全）
+            // 実際に取得できた件数を使用する
             let returnedCount = newShops.count
             
             // 取得件数が0件なら、これ以上取得しない

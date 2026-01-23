@@ -28,7 +28,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     private let locationManager = CLLocationManager()
     private let geocoder = CLGeocoder()
     
-    /// 住所解決済みフラグ（多重実行防止）
+    /// 住所解決済みフラグ（多重実行防止用）
     private var hasResolvedAddress = false
     
     // MARK: - 初期化
@@ -38,13 +38,13 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         
-        // アプリ起動時に現在の許可状態をチェック
+        // アプリ起動時に現在の許可状態をチェックする。
         checkAuthorization()
     }
     
     // MARK: - 公開メソッド
     
-    /// 現在の許可状態を確認し、必要なら許可リクエストを行う
+    /// 現在の許可状態を確認し、必要なら許可リクエストを行う。
     func checkAuthorization() {
         authorizationStatus = locationManager.authorizationStatus
         
@@ -65,18 +65,18 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     
     // MARK: - 内部制御
     
-    /// 位置情報の取得を開始する（許可後に呼ばれる）
+    /// 位置情報の取得を開始する（許可後に呼ばれる）。
     private func startUpdatingLocation() {
         hasResolvedAddress = false
         locationManager.startUpdatingLocation()
     }
     
-    /// バッテリー節約のため位置情報の取得を停止する
+    /// バッテリー消費を抑えるため、位置情報の取得を停止する。
     private func stopUpdatingLocation() {
         locationManager.stopUpdatingLocation()
     }
     
-    /// 緯度・経度から住所（都道府県・市・市の次の階層）を取得する
+    /// 緯度・経度から住所（都道府県・市・市の次の階層）を取得する。
     private func reverseGeocode(location: CLLocation) {
         geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
             guard let self else { return }
@@ -108,7 +108,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     
     // MARK: - CLLocationManagerDelegate
     
-    /// 位置情報の利用許可状態が変更されたときに呼ばれる
+    /// 位置情報の利用許可状態が変更されたときに呼ばれる。
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         // 現在の許可状態を保持
         authorizationStatus = manager.authorizationStatus
@@ -124,7 +124,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         }
     }
     
-    /// 位置情報の取得に成功したときに呼ばれる
+    /// 位置情報の取得に成功したときに呼ばれる。
     func locationManager(
         _ manager: CLLocationManager,
         didUpdateLocations locations: [CLLocation]
@@ -144,12 +144,12 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         stopUpdatingLocation()
     }
     
-    /// 位置情報の取得に失敗したときに呼ばれる
+    /// 位置情報の取得に失敗したときに呼ばれる。
     func locationManager(
         _ manager: CLLocationManager,
         didFailWithError error: Error
     ) {
-        // 取得失敗時のエラー内容をログ出力（デバッグ用）
+        // 取得失敗時のエラー内容をログ出力（デバッグ用途）。
         print("Location error:", error.localizedDescription)
     }
 }

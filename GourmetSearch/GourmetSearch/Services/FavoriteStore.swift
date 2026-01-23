@@ -5,8 +5,8 @@
 //  Created by miyamotokenshin on R 8/01/22.
 //
 
-import Foundation
 import CoreData
+import Foundation
 
 /// お気に入り店舗を管理するストアクラス
 /// CoreData を利用して永続化・読み込み・追加・削除を行う

@@ -17,15 +17,7 @@ struct HotPepperResponse: Codable {
 
 /// APIレスポンスの中身
 struct Results: Codable {
-    let resultsAvailable: Int
-    let resultsStart: Int
     let shop: [Shop]
-    
-    enum CodingKeys: String, CodingKey {
-        case resultsAvailable = "results_available"
-        case resultsStart     = "results_start"
-        case shop
-    }
 }
 
 // MARK: - Shop
@@ -104,7 +96,7 @@ extension Shop {
         self.shopCatch = entity.shopCatch ?? ""
         
         self.genre = Genre(name: entity.genreName ?? "")
-        self.budget = Budget(name: "", average: entity.budgetAverage ?? "")
+        self.budget = Budget(average: entity.budgetAverage ?? "")
         
         let pc = PC(l: entity.photoPCURL ?? "")
         let mobile = Mobile(l: entity.photoMobileURL ?? "")
@@ -146,7 +138,6 @@ extension Shop {
 // MARK: - Budget
 
 struct Budget: Codable {
-    let name: String
     let average: String
 }
 

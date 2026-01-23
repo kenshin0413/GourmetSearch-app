@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// アプリ全体のタブ構成を管理するルートビュー
+/// アプリ全体のタブ構成を管理するルートビュー。
 struct RootTabView: View {
     
     var body: some View {

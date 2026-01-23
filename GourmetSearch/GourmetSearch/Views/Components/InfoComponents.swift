@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-// MARK: - InfoCard
+// MARK: - 情報カード
 
-/// InfoRowを入れる枠組みカードの生成
+/// InfoRow を入れる枠組みカードの生成。
 struct InfoCard<Content: View>: View {
     
     /// カード内に表示するコンテンツ
@@ -31,10 +31,10 @@ struct InfoCard<Content: View>: View {
     }
 }
 
-// MARK: - InfoRow
+// MARK: - 情報行
 
-/// 店舗詳細のタイトル・値・アイコンの配置を決める共通UIコンポーネント
-/// 店舗情報（住所・アクセス・営業時間など）の表示に使用する
+/// 店舗詳細のタイトル・値・アイコンの配置を決める共通UIコンポーネント。
+/// 店舗情報（住所・アクセス・営業時間など）の表示に使用する。
 struct InfoRow: View {
     
     /// 表示する項目名（例：住所、営業時間）
