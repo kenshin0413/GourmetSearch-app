@@ -5,10 +5,10 @@
 //  Created by miyamotokenshin on R 8/01/19.
 //
 
-import SwiftUI
 import CoreLocation
+import SwiftUI
 
-/// 店舗一覧で1店舗分の情報を「グルメアプリ風カードUI」で表示するビュー
+/// 店舗一覧で1店舗分の情報をカードUIで表示するビュー。
 struct ShopRowView: View {
     
     /// 表示対象の店舗データ
@@ -156,7 +156,7 @@ struct ShopRowView: View {
     
     // MARK: - 共通UI部品
     
-    /// 検索結果画像の上に表示されてる距離と時間のパーツ
+    /// 検索結果画像の上に表示される距離・状態のパーツ。
     private func badge(
         text: String,
         icon: String,

@@ -6,8 +6,6 @@
 //
 
 import SwiftUI
-
-
 @main
 struct GourmetSearchApp: App {
     
@@ -17,6 +15,7 @@ struct GourmetSearchApp: App {
     /// CoreData の永続化管理（シングルトン）
     private let persistence = PersistenceController.shared
     
+    
     var body: some Scene {
         WindowGroup {
             
@@ -25,8 +24,7 @@ struct GourmetSearchApp: App {
                 context: persistence.container.viewContext
             )
             
-            /// ルート画面に依存オブジェクトを渡す
-            RootTabView()
+            AppRootView()
                 .environmentObject(locationService)
                 .environmentObject(favoriteStore)
                 .environment(

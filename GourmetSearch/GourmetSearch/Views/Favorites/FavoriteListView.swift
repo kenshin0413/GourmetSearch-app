@@ -5,10 +5,10 @@
 //  Created by miyamotokenshin on R 8/01/22.
 //
 
-import SwiftUI
 import CoreLocation
+import SwiftUI
 
-/// お気に入り店舗一覧画面
+/// お気に入り店舗一覧画面。
 struct FavoriteListView: View {
     
     @EnvironmentObject private var favoriteStore: FavoriteStore
@@ -53,7 +53,7 @@ struct FavoriteListView: View {
                         .buttonStyle(.plain)
                     }
                     .onDelete { offsets in
-                        // 直接削除せず、アラート表示
+                        // 直接削除せず、アラートを表示して確認する。
                         pendingDeleteOffsets = offsets
                         showDeleteAlert = true
                     }
@@ -63,14 +63,12 @@ struct FavoriteListView: View {
             .environment(\.editMode, $editMode)
         }
         .background(Color(.systemGroupedBackground))
-        
-        // NavigationLink の青色を無効化
         .tint(.primary)
         
         .navigationTitle("お気に入り")
         .navigationBarTitleDisplayMode(.inline)
         
-        // MARK: - 編集ボタン（あえてiOS標準にしてない）
+        // MARK: - 編集ボタン（iOS標準UIではなく独自ボタン）
         
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -92,7 +90,7 @@ struct FavoriteListView: View {
                 }
                 pendingDeleteOffsets = nil
                 
-                // 削除後は編集モードを解除
+                // 削除後は編集モードを解除する。
                 withAnimation(.easeOut(duration: 0.2)) {
                     editMode = .inactive
                 }

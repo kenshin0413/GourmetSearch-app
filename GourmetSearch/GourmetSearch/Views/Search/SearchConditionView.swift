@@ -125,7 +125,7 @@ struct SearchConditionView: View {
     
     // MARK: - 現在地表示エリア
     
-    /// 取得した住所や取得中状態を表示する
+    /// 現在地の取得状態・住所・エラー状態を表示するピルUI
     private var locationPill: some View {
         HStack(spacing: 10) {
             Image(systemName: "location.fill")
@@ -137,16 +137,21 @@ struct SearchConditionView: View {
                     .foregroundStyle(.secondary)
                 
                 if let address = locationService.addressText, !address.isEmpty {
+                    // 住所が取得できた場合
                     Text(address)
                         .font(.body)
                         .lineLimit(1)
+                    
                 } else if locationService.authorizationStatus == .denied
                             || locationService.authorizationStatus == .restricted {
+                    // 位置情報が拒否されている場合
                     Text("位置情報が許可されていません")
                         .font(.body)
                         .foregroundStyle(.red)
                         .lineLimit(1)
+                    
                 } else {
+                    // 位置情報を取得中の場合
                     Text("取得中…")
                         .font(.body)
                         .foregroundStyle(.secondary)
@@ -156,6 +161,7 @@ struct SearchConditionView: View {
             
             Spacer()
             
+            // 位置情報取得中のみローディング表示
             if locationService.addressText == nil &&
                 !(locationService.authorizationStatus == .denied
                   || locationService.authorizationStatus == .restricted) {
@@ -169,6 +175,7 @@ struct SearchConditionView: View {
     
     // MARK: - キーワード入力欄
     
+    /// 店舗検索キーワードを入力する検索バーUI
     private var searchBar: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("キーワード")
@@ -182,6 +189,7 @@ struct SearchConditionView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled(true)
                 
+                // 入力中のみクリアボタンを表示
                 if !resultViewModel.searchKeyword.isEmpty {
                     Button {
                         resultViewModel.searchKeyword = ""
@@ -201,11 +209,13 @@ struct SearchConditionView: View {
     
     // MARK: - 検索範囲選択
     
+    /// 検索半径をチップUIで選択するエリア
     private var rangeChips: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("検索範囲")
                 .font(.headline)
             
+            // API仕様に合わせた距離プリセット
             let items: [(Int, String)] = [
                 (1, "300m"),
                 (2, "500m"),
@@ -222,6 +232,7 @@ struct SearchConditionView: View {
         }
     }
     
+    /// 距離選択チップの単体UI
     private func rangeChip(value: Int, title: String) -> some View {
         let isSelected = (resultViewModel.searchRange == value)
         
@@ -241,6 +252,7 @@ struct SearchConditionView: View {
     
     // MARK: - クイックキーワード
     
+    /// ワンタップで検索キーワードを入力できるプリセット一覧
     private var quickTags: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("人気の検索")
@@ -261,6 +273,7 @@ struct SearchConditionView: View {
         }
     }
     
+    /// クイックキーワード用のタグUI
     private func keywordTag(_ word: String) -> some View {
         Button {
             resultViewModel.searchKeyword = word
@@ -277,6 +290,7 @@ struct SearchConditionView: View {
     
     // MARK: - 検索実行ボタン
     
+    /// 現在地が取得できた場合のみ有効になる検索実行ボタン
     private var searchButton: some View {
         Button {
             if let location = locationService.currentLocation {
@@ -302,6 +316,7 @@ struct SearchConditionView: View {
         .padding(.top, 6)
     }
     
+    /// 現在地が取得できているかどうか
     private var canSearch: Bool {
         locationService.currentLocation != nil
     }

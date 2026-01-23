@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// 店舗の詳細情報を表示する画面
+/// 店舗の詳細情報を表示する画面。
 struct ShopDetailView: View {
     
     // MARK: - 入力データ
@@ -31,14 +31,14 @@ struct ShopDetailView: View {
     
     // MARK: - URL関連
     
-    /// Apple Maps で住所検索するURL
+    /// Apple Maps で住所検索する URL。
     private var mapsURL: URL? {
         let encodedAddress = shop.address
             .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         return URL(string: "https://maps.apple.com/?q=\(encodedAddress)")
     }
     
-    /// 店舗の公式サイトURL（HotPepper）
+    /// 店舗の公式サイト URL（HotPepper）。
     private var websiteURL: URL? {
         guard !shop.urls.pc.isEmpty else { return nil }
         return URL(string: shop.urls.pc)
@@ -46,7 +46,7 @@ struct ShopDetailView: View {
     
     // MARK: - 距離表示
     
-    /// 現在地から店舗までの距離テキスト
+    /// 現在地から店舗までの距離テキスト。
     private var distanceText: String? {
         DistanceFormatter.text(
             from: locationService.currentLocation,
@@ -57,20 +57,20 @@ struct ShopDetailView: View {
     
     // MARK: - 支払い・駐車場情報
     
-    /// カード利用可否の表示テキスト
+    /// カード利用可否の表示テキスト。
     private var cardText: String {
         shop.card.isEmpty ? "不明" : shop.card
     }
     
-    /// 駐車場の有無の表示テキスト
+    /// 駐車場の有無の表示テキスト。
     private var parkingText: String {
         shop.parking.isEmpty ? "不明" : shop.parking
     }
     
     // MARK: - テキスト整形
     
-    /// アクセス情報を見やすく整形する
-    /// "/" の直後で改行する
+    /// アクセス情報を見やすく整形する。
+    /// "/" の直後で改行する。
     private var formattedAccessText: String {
         shop.access
             .replacingOccurrences(of: "/", with: "/\n")
@@ -79,7 +79,7 @@ struct ShopDetailView: View {
     
     // MARK: - 営業状態判定
     
-    /// 営業状態の表示用データ
+    /// 営業状態の表示用データ。
     private var openingStatus: (text: String, color: Color)? {
         guard let isOpen = BusinessHoursParser.isOpen(text: shop.shopOpen) else {
             return ("営業時間不明", .gray.opacity(0.6))
@@ -94,7 +94,7 @@ struct ShopDetailView: View {
     
     // MARK: - お気に入り状態
     
-    /// お気に入り状態
+    /// お気に入り状態。
     private var isFavorite: Bool {
         favoriteStore.isFavorite(id: shop.id)
     }

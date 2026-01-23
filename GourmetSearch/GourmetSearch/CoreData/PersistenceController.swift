@@ -5,8 +5,8 @@
 //  Created by miyamotokenshin on R 8/01/22.
 //
 
-import Foundation
 import CoreData
+import Foundation
 
 /// CoreDataスタックを管理するクラス
 /// NSPersistentContainer の生成・設定を担当する
@@ -22,13 +22,12 @@ struct PersistenceController {
     /// - Parameter inMemory: テスト用にメモリ上のみで動かすかどうか
     init(inMemory: Bool = false) {
         
-        /// ※ .xcdatamodeld のファイル名と完全一致させる必要あり
         container = NSPersistentContainer(name: "GourmetSearchModel")
         
         /// メモリ上のみで永続化する設定（UnitTest・Preview用）
         if inMemory {
             container.persistentStoreDescriptions.first?.url =
-                URL(fileURLWithPath: "/dev/null")
+            URL(fileURLWithPath: "/dev/null")
         }
         
         /// 永続ストアの読み込み
@@ -40,10 +39,9 @@ struct PersistenceController {
         
         /// 同一オブジェクト競合時は最新の変更を優先する
         container.viewContext.mergePolicy =
-            NSMergeByPropertyObjectTrumpMergePolicy
+        NSMergeByPropertyObjectTrumpMergePolicy
         
         /// バックグラウンド更新を自動的に反映させる
         container.viewContext.automaticallyMergesChangesFromParent = true
     }
 }
-
