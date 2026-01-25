@@ -130,11 +130,18 @@ final class ShopSearchViewModel: ObservableObject {
             
         } catch {
             // 通信エラー発生時のエラーメッセージを保持する
-            errorMessage = error.localizedDescription
+            errorMessage = HotPepperAPIError.userMessage(for: error)
             print("❌ Shop fetch error:", error.localizedDescription)
         }
         
         // ローディング状態を解除する
         isLoading = false
+    }
+
+    // エラーメッセージは HotPepperAPIError 側で行う
+
+    // MARK: - エラー状態のクリア
+    func clearError() {
+        errorMessage = nil
     }
 }

@@ -33,6 +33,9 @@ final class HotPepperAPIService {
         fetchCount: Int
     ) async throws -> HotPepperResponse {
         
+        // APIキー未設定は明示エラーにする
+        guard !apiKey.isEmpty else { throw HotPepperAPIError.invalidAPIKey }
+
         var components = URLComponents(string: baseUrl)!
         components.queryItems = [
             URLQueryItem(name: "key", value: apiKey),
@@ -51,12 +54,18 @@ final class HotPepperAPIService {
         }
         
         guard let url = components.url else {
-            throw URLError(.badURL)
+            throw HotPepperAPIError.badURL
         }
         
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let result = try JSONDecoder().decode(HotPepperResponse.self, from: data)
+        let (data, response) = try await URLSession.shared.data(from: url)
+        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+            throw HotPepperAPIError.httpStatus(http.statusCode)
+        }
         
-        return result
+        do {
+            return try JSONDecoder().decode(HotPepperResponse.self, from: data)
+        } catch {
+            throw HotPepperAPIError.decoding
+        }
     }
 }
