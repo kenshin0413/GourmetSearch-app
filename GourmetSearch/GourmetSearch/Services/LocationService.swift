@@ -7,7 +7,8 @@
 
 import CoreLocation
 
-/// 端末の現在地を取得・管理するサービスクラス。
+// MARK: -　現在位置取得・管理
+
 /// 位置情報の許可リクエストと現在地取得を担当する。
 final class LocationService: NSObject, ObservableObject, CLLocationManagerDelegate {
     
@@ -53,7 +54,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
             locationManager.requestWhenInUseAuthorization()
             
         case .authorizedWhenInUse, .authorizedAlways:
-            startUpdatingLocation()
+            requestCurrentLocation()
             
         case .denied, .restricted:
             break
@@ -65,19 +66,15 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     
     // MARK: - 内部制御
     
-    /// 位置情報の取得を開始する（許可後に呼ばれる）。
-    private func startUpdatingLocation() {
+    /// ワンショットで現在地を取得（省電力）。
+    private func requestCurrentLocation() {
         hasResolvedAddress = false
-        locationManager.startUpdatingLocation()
-    }
-    
-    /// バッテリー消費を抑えるため、位置情報の取得を停止する。
-    private func stopUpdatingLocation() {
-        locationManager.stopUpdatingLocation()
+        locationManager.requestLocation()
     }
     
     /// 緯度・経度から住所（都道府県・市・市の次の階層）を取得する。
     private func reverseGeocode(location: CLLocation) {
+        geocoder.cancelGeocode()
         geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
             guard let self else { return }
             
@@ -115,11 +112,10 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         
         switch authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
-            // 位置情報の利用が許可されたら、現在地の取得を開始する
-            startUpdatingLocation()
+            // 位置情報の利用が許可されたら、現在地をワンショットで取得
+            requestCurrentLocation()
             
         default:
-            // 未許可・制限中の場合は特に処理しない
             break
         }
     }
@@ -139,9 +135,6 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         
         // 緯度・経度から住所を取得する
         reverseGeocode(location: location)
-        
-        // バッテリー消費を抑えるため、位置情報の更新を停止する
-        stopUpdatingLocation()
     }
     
     /// 位置情報の取得に失敗したときに呼ばれる。
@@ -149,7 +142,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         _ manager: CLLocationManager,
         didFailWithError error: Error
     ) {
-        // 取得失敗時のエラー内容をログ出力（デバッグ用途）。
+        // 取得失敗時のエラー内容をログ出力。
         print("Location error:", error.localizedDescription)
     }
 }

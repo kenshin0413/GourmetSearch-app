@@ -17,6 +17,15 @@ struct ShopRowView: View {
     /// ユーザーの現在地（距離計算に使用）
     let userLocation: CLLocation?
     
+    /// 表示用ロジック（距離計算）
+    @StateObject private var viewModel: ShopRowViewModel
+    
+    init(shop: Shop, userLocation: CLLocation?) {
+        self.shop = shop
+        self.userLocation = userLocation
+        _viewModel = StateObject(wrappedValue: ShopRowViewModel(shop: shop))
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             
@@ -40,11 +49,11 @@ struct ShopRowView: View {
                 .frame(height: 180)
                 .clipped()
                 
-                // 右上に表示するバッジ（距離・営業状態）
+                // 右上に表示するバッジ（距離）
                 VStack(alignment: .trailing, spacing: 8) {
                     
                     // 現在地からの距離
-                    if let distanceText {
+                    if let distanceText = viewModel.distanceText {
                         badge(
                             text: distanceText,
                             icon: "location.fill",
@@ -113,20 +122,10 @@ struct ShopRowView: View {
                 .stroke(Color.black.opacity(0.06), lineWidth: 1)
         }
         .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 6)
+        .onAppear {
+            viewModel.updateDistance(with: userLocation)
+        }
     }
-    
-    // MARK: - 距離表示
-    
-    /// 現在地から店舗までの距離テキスト
-    private var distanceText: String? {
-        DistanceFormatter.text(
-            from: userLocation,
-            to: shop.lat,
-            longitude: shop.lng
-        )
-    }
-    
-    // MARK: - 営業状態判定（削除済: BusinessHoursParser 依存）
     
     // MARK: - 共通UI部品
     

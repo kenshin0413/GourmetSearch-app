@@ -11,13 +11,10 @@ import SwiftUI
 struct ShopListView: View {
     
     /// 検索結果と読み込み状態を管理する ViewModel
-    @ObservedObject var viewModel: ShopSearchViewModel
+    @ObservedObject var viewModel: ShopListViewModel
     
     /// 現在地・住所情報を管理する LocationService
     @EnvironmentObject var locationService: LocationService
-    
-    /// APIエラー発生時のアラート制御
-    @State private var showErrorAlert = false
     
     var body: some View {
         ScrollView {
@@ -81,13 +78,8 @@ struct ShopListView: View {
             guard let location = locationService.currentLocation else { return }
             await viewModel.startSearch(from: location)
         }
-        // APIエラーをアラートで通知
-        .onChange(of: viewModel.errorMessage) { _, newValue in
-            if let msg = newValue, !msg.isEmpty {
-                showErrorAlert = true
-            }
-        }
-        .alert("エラーが発生しました", isPresented: $showErrorAlert) {
+        // APIエラーをアラートで通知（ViewModelの状態にバインド）
+        .alert("エラーが発生しました", isPresented: $viewModel.showErrorAlert) {
             Button("OK", role: .cancel) {
                 viewModel.clearError()
             }
@@ -96,12 +88,13 @@ struct ShopListView: View {
         }
     }
     
+    
     // MARK: - 固定表示ヘッダー
     
     /// 検索条件と状態を表示する固定ヘッダー。
     private var pinnedHeader: some View {
         VStack(spacing: 10) {
-
+            
             // 検索結果件数と取得状態の表示
             HStack(spacing: 10) {
                 Text("見つかったお店")
@@ -165,7 +158,17 @@ struct ShopListView: View {
         }
         .padding(.bottom, 4)
     }
-    
+    /// 検索範囲の数値を表示用テキストに変換する。
+    private func rangeText(_ range: Int) -> String {
+        switch range {
+        case 1: return "300m"
+        case 2: return "500m"
+        case 3: return "1km"
+        case 4: return "2km"
+        case 5: return "3km"
+        default: return "\(range)"
+        }
+    }
     /// 検索条件チップの共通UI。
     private func conditionChip(icon: String, title: String) -> some View {
         HStack(spacing: 6) {
@@ -184,17 +187,6 @@ struct ShopListView: View {
         .clipShape(RoundedRectangle(cornerRadius: 999))
     }
     
-    /// 検索範囲の数値を表示用テキストに変換する。
-    private func rangeText(_ range: Int) -> String {
-        switch range {
-        case 1: return "300m"
-        case 2: return "500m"
-        case 3: return "1km"
-        case 4: return "2km"
-        case 5: return "3km"
-        default: return "\(range)"
-        }
-    }
     
     // MARK: - 検索結果が空のときの表示
     

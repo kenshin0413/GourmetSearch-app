@@ -7,12 +7,14 @@
 
 import Foundation
 
+// MARK: - 通信関連のエラー処理
+
 enum HotPepperAPIError: Error {
     case invalidAPIKey
     case badURL
     case httpStatus(Int)
     case decoding
-
+    
     /// ユーザー向け日本語メッセージ
     var userMessage: String {
         switch self {
@@ -39,7 +41,7 @@ enum HotPepperAPIError: Error {
             return "データの読み取りに失敗しました。時間をおいてお試しください。"
         }
     }
-
+    
     /// 任意の Error を日本語メッセージに変換
     static func userMessage(for error: Error) -> String {
         if let apiError = error as? HotPepperAPIError {

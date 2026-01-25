@@ -8,7 +8,8 @@
 import CoreData
 import Foundation
 
-/// お気に入り店舗を管理するストアクラス
+// MARK: - お気に入り店舗管理
+
 /// CoreData を利用して永続化・読み込み・追加・削除を行う
 @MainActor
 final class FavoriteStore: ObservableObject {
@@ -97,15 +98,6 @@ final class FavoriteStore: ObservableObject {
             favorites.indices.contains(index) ? favorites[index].id : nil
         }
         ids.forEach { remove(id: $0) }
-    }
-    
-    /// お気に入りの追加・削除を切り替える
-    func toggle(_ shop: Shop) {
-        if isFavorite(id: shop.id) {
-            remove(id: shop.id)
-        } else {
-            add(shop)
-        }
     }
     
     // MARK: - 保存処理

@@ -13,15 +13,7 @@ struct FavoriteListView: View {
     
     @EnvironmentObject private var favoriteStore: FavoriteStore
     @EnvironmentObject private var locationService: LocationService
-    
-    /// 削除確認アラート表示フラグ
-    @State private var showDeleteAlert = false
-    
-    /// 削除対象IndexSet（一時保持）
-    @State private var pendingDeleteOffsets: IndexSet?
-    
-    /// 編集モード制御
-    @State private var editMode: EditMode = .inactive
+    @StateObject private var viewModel = FavoriteListViewModel()
     
     var body: some View {
         VStack(spacing: 0) {
@@ -36,12 +28,12 @@ struct FavoriteListView: View {
             // MARK: - お気に入りリスト
             
             List {
-                if favoriteStore.favorites.isEmpty {
+                if viewModel.isEmpty {
                     emptyState
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 } else {
-                    ForEach(favoriteStore.favorites, id: \.id) { shop in
+                    ForEach(viewModel.favorites, id: \.id) { shop in
                         NavigationLink {
                             ShopDetailView(shop: shop)
                         } label: {
@@ -53,29 +45,32 @@ struct FavoriteListView: View {
                         .buttonStyle(.plain)
                     }
                     .onDelete { offsets in
-                        // 直接削除せず、アラートを表示して確認する。
-                        pendingDeleteOffsets = offsets
-                        showDeleteAlert = true
+                        viewModel.promptDelete(offsets: offsets)
                     }
                 }
             }
             .listStyle(.plain)
-            .environment(\.editMode, $editMode)
+            .environment(\.editMode, .init(
+                get: { viewModel.editMode },
+                set: { viewModel.editMode = $0 }
+            ))
         }
         .background(Color(.systemGroupedBackground))
         .tint(.primary)
         
         .navigationTitle("お気に入り")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // FavoriteStore を ViewModel にバインド
+            viewModel.bind(favoriteStore: favoriteStore)
+        }
         
         // MARK: - 編集ボタン（iOS標準UIではなく独自ボタン）
         
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    toggleEditMode()
-                } label: {
-                    Text(editMode == .active ? "完了" : "編集")
+                Button { viewModel.toggleEditMode() } label: {
+                    Text(viewModel.editMode == .active ? "完了" : "編集")
                         .font(.headline)
                 }
             }
@@ -83,25 +78,10 @@ struct FavoriteListView: View {
         
         // MARK: - 削除確認アラート
         
-        .alert("お気に入りを削除しますか？", isPresented: $showDeleteAlert) {
-            Button("削除", role: .destructive) {
-                if let offsets = pendingDeleteOffsets {
-                    favoriteStore.remove(at: offsets)
-                }
-                pendingDeleteOffsets = nil
-                
-                // 削除後は編集モードを解除する。
-                withAnimation(.easeOut(duration: 0.2)) {
-                    editMode = .inactive
-                }
-            }
-            
-            Button("キャンセル", role: .cancel) {
-                pendingDeleteOffsets = nil
-            }
-        } message: {
-            Text("この操作は取り消せません。")
-        }
+        .alert("お気に入りを削除しますか？", isPresented: $viewModel.showDeleteAlert) {
+            Button("削除", role: .destructive) { viewModel.confirmDelete() }
+            Button("キャンセル", role: .cancel) { viewModel.cancelDelete() }
+        } message: { Text("この操作は取り消せません。") }
     }
     
     // MARK: - 固定ヘッダー
@@ -130,7 +110,7 @@ struct FavoriteListView: View {
                         .font(.system(size: 18, weight: .bold))
                         .foregroundStyle(.white)
                     
-                    Text("\(favoriteStore.favorites.count)件を保存中")
+                    Text(viewModel.countText)
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.white.opacity(0.9))
                 }
@@ -142,14 +122,6 @@ struct FavoriteListView: View {
         .frame(height: 75)
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .accessibilityElement(children: .combine)
-    }
-    
-    // MARK: - 編集モード切り替え
-    
-    private func toggleEditMode() {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            editMode = (editMode == .active) ? .inactive : .active
-        }
     }
     
     // MARK: - 空状態UI

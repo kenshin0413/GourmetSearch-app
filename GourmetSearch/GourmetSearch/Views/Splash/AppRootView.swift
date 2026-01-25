@@ -10,9 +10,11 @@ import SwiftUI
 /// アプリ起動フロー（スプラッシュ表示→メイン画面）を管理するルートView。
 struct AppRootView: View {
     // MARK: - 状態
+    
     @State private var showSplash = true
     
     // MARK: - ビュー構成
+    
     var body: some View {
         ZStack {
             if showSplash {
