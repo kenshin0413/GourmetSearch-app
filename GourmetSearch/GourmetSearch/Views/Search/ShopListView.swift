@@ -16,6 +16,9 @@ struct ShopListView: View {
     /// 現在地・住所情報を管理する LocationService
     @EnvironmentObject var locationService: LocationService
     
+    /// APIエラー発生時のアラート制御
+    @State private var showErrorAlert = false
+    
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 14, pinnedViews: [.sectionHeaders]) {
@@ -78,6 +81,19 @@ struct ShopListView: View {
             guard let location = locationService.currentLocation else { return }
             await viewModel.startSearch(from: location)
         }
+        // APIエラーをアラートで通知
+        .onChange(of: viewModel.errorMessage) { _, newValue in
+            if let msg = newValue, !msg.isEmpty {
+                showErrorAlert = true
+            }
+        }
+        .alert("エラーが発生しました", isPresented: $showErrorAlert) {
+            Button("OK", role: .cancel) {
+                viewModel.clearError()
+            }
+        } message: {
+            Text(viewModel.errorMessage ?? "不明なエラーが発生しました")
+        }
     }
     
     // MARK: - 固定表示ヘッダー
@@ -85,26 +101,7 @@ struct ShopListView: View {
     /// 検索条件と状態を表示する固定ヘッダー。
     private var pinnedHeader: some View {
         VStack(spacing: 10) {
-            
-            // API通信・データ取得に失敗した場合のエラー表示
-            if let error = viewModel.errorMessage {
-                HStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.red)
-                    
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                        .lineLimit(2)
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.red.opacity(0.08))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-            }
-            
+
             // 検索結果件数と取得状態の表示
             HStack(spacing: 10) {
                 Text("見つかったお店")
