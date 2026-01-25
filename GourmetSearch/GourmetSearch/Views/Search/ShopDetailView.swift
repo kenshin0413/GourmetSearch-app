@@ -77,20 +77,7 @@ struct ShopDetailView: View {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
-    // MARK: - 営業状態判定
-    
-    /// 営業状態の表示用データ。
-    private var openingStatus: (text: String, color: Color)? {
-        guard let isOpen = BusinessHoursParser.isOpen(text: shop.shopOpen) else {
-            return ("営業時間不明", .gray.opacity(0.6))
-        }
-        
-        if isOpen {
-            return ("営業中", .green.opacity(0.75))
-        } else {
-            return ("営業時間外", .red.opacity(0.75))
-        }
-    }
+    // MARK: - 営業状態判定（削除済: BusinessHoursParser 依存）
     
     // MARK: - お気に入り状態
     
@@ -221,12 +208,7 @@ struct ShopDetailView: View {
                     )
                 }
                 
-                if let status = openingStatus {
-                    badge(
-                        text: status.text,
-                        background: status.color
-                    )
-                }
+                // 営業状態バッジ表示は削除（BusinessHoursParser 依存を排除）
                 
                 if !shop.budget.average.isEmpty {
                     badge(
