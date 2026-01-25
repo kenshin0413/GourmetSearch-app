@@ -50,15 +50,6 @@ struct ShopRowView: View {
                             background: Color(uiColor: .systemBlue).opacity(0.75)
                         )
                     }
-                    
-                    // 営業状態
-                    if let status = openingStatus {
-                        badge(
-                            text: status.text,
-                            icon: status.icon,
-                            background: status.color
-                        )
-                    }
                 }
                 .padding(10)
             }
@@ -134,25 +125,7 @@ struct ShopRowView: View {
         )
     }
     
-    // MARK: - 営業状態判定
-    
-    /// 営業状態の表示用データ（テキスト・アイコン・色）
-    private var openingStatus: (text: String, icon: String, color: Color)? {
-        guard let isOpen = isCurrentlyOpen else {
-            return ("営業時間不明", "questionmark.circle", .gray.opacity(0.6))
-        }
-        
-        if isOpen {
-            return ("営業中", "checkmark.circle.fill", .green.opacity(0.75))
-        } else {
-            return ("営業時間外", "moon.fill", .red.opacity(0.75))
-        }
-    }
-    
-    /// 現在時刻が営業時間内かどうか
-    private var isCurrentlyOpen: Bool? {
-        BusinessHoursParser.isOpen(text: shop.shopOpen)
-    }
+    // MARK: - 営業状態判定（削除済: BusinessHoursParser 依存）
     
     // MARK: - 共通UI部品
     
