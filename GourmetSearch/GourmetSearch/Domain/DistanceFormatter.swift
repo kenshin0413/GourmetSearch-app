@@ -20,13 +20,10 @@ enum DistanceFormatter {
         guard let userLocation else { return nil }
         
         let shopLocation = CLLocation(latitude: latitude, longitude: longitude)
+        /// ここで取得できるのは必ずメートル
+        /// https://developer.apple.com/documentation/corelocation/cllocation/distance(from:)
         let meters = userLocation.distance(from: shopLocation)
         
-        if meters < 1000 {
-            return "\(Int(meters))m"
-        } else {
-            let km = meters / 1000
-            return String(format: "%.1fkm", km)
-        }
+        return "\(Int(meters))m"
     }
 }

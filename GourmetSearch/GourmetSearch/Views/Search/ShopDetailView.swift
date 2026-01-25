@@ -167,7 +167,7 @@ struct ShopDetailView: View {
         AsyncImage(url: URL(string: shop.photo.pc.l)) { image in
             image
                 .resizable()
-                .scaledToFill()
+                .aspectRatio(contentMode: .fill)
         } placeholder: {
             ZStack {
                 Rectangle()
@@ -175,7 +175,7 @@ struct ShopDetailView: View {
                 ProgressView()
             }
         }
-        .frame(height: 260)
+        .frame(maxWidth: .infinity)
         .clipped()
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .padding(.horizontal, 16)

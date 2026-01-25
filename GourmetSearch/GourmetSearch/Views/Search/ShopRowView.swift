@@ -27,7 +27,7 @@ struct ShopRowView: View {
                 AsyncImage(url: URL(string: shop.photo.mobile.l)) { image in
                     image
                         .resizable()
-                        .scaledToFill()
+                        .aspectRatio(contentMode: .fill)
                 } placeholder: {
                     ZStack {
                         Rectangle()
@@ -36,6 +36,7 @@ struct ShopRowView: View {
                         ProgressView()
                     }
                 }
+                .frame(maxWidth: .infinity)
                 .frame(height: 180)
                 .clipped()
                 
