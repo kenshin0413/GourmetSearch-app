@@ -21,69 +21,14 @@ struct ShopDetailView: View {
     /// お気に入り管理ストア
     @EnvironmentObject private var favoriteStore: FavoriteStore
     
-    // MARK: - トースト表示制御
+    /// 表示ロジック用の ViewModel
+    @StateObject private var viewModel: ShopDetailViewModel
     
-    /// トースト表示フラグ
-    @State private var showToast = false
+    // MARK: - 初期化
     
-    /// トーストに表示するメッセージ
-    @State private var toastMessage = ""
-    
-    // MARK: - URL関連
-    
-    /// Apple Maps で住所検索する URL。
-    private var mapsURL: URL? {
-        let encodedAddress = shop.address
-            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        return URL(string: "https://maps.apple.com/?q=\(encodedAddress)")
-    }
-    
-    /// 店舗の公式サイト URL（HotPepper）。
-    private var websiteURL: URL? {
-        guard !shop.urls.pc.isEmpty else { return nil }
-        return URL(string: shop.urls.pc)
-    }
-    
-    // MARK: - 距離表示
-    
-    /// 現在地から店舗までの距離テキスト。
-    private var distanceText: String? {
-        DistanceFormatter.text(
-            from: locationService.currentLocation,
-            to: shop.lat,
-            longitude: shop.lng
-        )
-    }
-    
-    // MARK: - 支払い・駐車場情報
-    
-    /// カード利用可否の表示テキスト。
-    private var cardText: String {
-        shop.card.isEmpty ? "不明" : shop.card
-    }
-    
-    /// 駐車場の有無の表示テキスト。
-    private var parkingText: String {
-        shop.parking.isEmpty ? "不明" : shop.parking
-    }
-    
-    // MARK: - テキスト整形
-    
-    /// アクセス情報を見やすく整形する。
-    /// "/" の直後で改行する。
-    private var formattedAccessText: String {
-        shop.access
-            .replacingOccurrences(of: "/", with: "/\n")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-    
-    // MARK: - 営業状態判定（削除済: BusinessHoursParser 依存）
-    
-    // MARK: - お気に入り状態
-    
-    /// お気に入り状態。
-    private var isFavorite: Bool {
-        favoriteStore.isFavorite(id: shop.id)
+    init(shop: Shop) {
+        self.shop = shop
+        _viewModel = StateObject(wrappedValue: ShopDetailViewModel(shop: shop))
     }
     
     // MARK: - 画面構成
@@ -108,21 +53,28 @@ struct ShopDetailView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        handleFavoriteTapped()
+                        viewModel.favoriteTapped()
                     } label: {
-                        Image(systemName: isFavorite ? "star.fill" : "star")
-                            .foregroundStyle(isFavorite ? Color.yellow : Color.primary)
+                        Image(systemName: viewModel.isFavorite ? "star.fill" : "star")
+                            .foregroundStyle(viewModel.isFavorite ? Color.yellow : Color.primary)
                     }
                 }
+            }
+            .onAppear {
+                // EnvironmentObject を ViewModel にバインド
+                viewModel.bind(
+                    favoriteStore: favoriteStore,
+                    locationService: locationService
+                )
             }
             
             // MARK: - トースト表示
             
-            if showToast {
+            if viewModel.showToast {
                 VStack {
                     Spacer()
                     
-                    Text(toastMessage)
+                    Text(viewModel.toastMessage)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white)
                         .padding(.vertical, 10)
@@ -132,31 +84,7 @@ struct ShopDetailView: View {
                         .padding(.bottom, 24)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .animation(.easeInOut, value: showToast)
-            }
-        }
-    }
-    
-    // MARK: - お気に入りボタン処理
-    
-    private func handleFavoriteTapped() {
-        let wasFavorite = isFavorite
-        favoriteStore.toggle(shop)
-        
-        // メッセージ切り替え
-        toastMessage = wasFavorite
-        ? "お気に入りから削除しました"
-        : "お気に入りに追加しました"
-        
-        // トースト表示
-        withAnimation {
-            showToast = true
-        }
-        
-        // 2秒後に自動で非表示
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            withAnimation {
-                showToast = false
+                .animation(.easeInOut, value: viewModel.showToast)
             }
         }
     }
@@ -201,14 +129,12 @@ struct ShopDetailView: View {
             
             HStack(spacing: 8) {
                 
-                if let distanceText {
+                if let distanceText = viewModel.distanceText {
                     badge(
                         text: distanceText,
                         background: Color(uiColor: .systemBlue).opacity(0.75)
                     )
                 }
-                
-                // 営業状態バッジ表示は削除（BusinessHoursParser 依存を排除）
                 
                 if !shop.budget.average.isEmpty {
                     badge(
@@ -228,7 +154,7 @@ struct ShopDetailView: View {
     private var actionSection: some View {
         HStack(spacing: 12) {
             
-            if let mapsURL {
+            if let mapsURL = viewModel.mapsURL {
                 Link(destination: mapsURL) {
                     actionButton(
                         title: "地図で開く",
@@ -237,7 +163,7 @@ struct ShopDetailView: View {
                 }
             }
             
-            if let websiteURL {
+            if let websiteURL = viewModel.websiteURL {
                 Link(destination: websiteURL) {
                     actionButton(
                         title: "公式サイト",
@@ -265,7 +191,7 @@ struct ShopDetailView: View {
                 
                 InfoRow(
                     title: "アクセス",
-                    value: formattedAccessText,
+                    value: viewModel.formattedAccessText,
                     icon: "figure.walk"
                 )
             }
@@ -289,7 +215,7 @@ struct ShopDetailView: View {
             InfoCard {
                 InfoRow(
                     title: "カード",
-                    value: cardText,
+                    value: viewModel.cardText,
                     icon: "creditcard"
                 )
                 
@@ -297,7 +223,7 @@ struct ShopDetailView: View {
                 
                 InfoRow(
                     title: "駐車場",
-                    value: parkingText,
+                    value: viewModel.parkingText,
                     icon: "parkingsign.circle"
                 )
             }

@@ -35,23 +35,21 @@ final class HotPepperAPIService {
         
         // APIキー未設定は明示エラーにする
         guard !apiKey.isEmpty else { throw HotPepperAPIError.invalidAPIKey }
-
-        var components = URLComponents(string: baseUrl)!
-        components.queryItems = [
-            URLQueryItem(name: "key", value: apiKey),
-            URLQueryItem(name: "format", value: "json"),
-            URLQueryItem(name: "lat", value: String(latitude)),
-            URLQueryItem(name: "lng", value: String(longitude)),
-            URLQueryItem(name: "range", value: String(range)),
-            URLQueryItem(name: "start", value: String(startIndex)),
-            URLQueryItem(name: "count", value: String(fetchCount))
-        ]
         
-        if let keyword, !keyword.isEmpty {
-            components.queryItems?.append(
-                URLQueryItem(name: "keyword", value: keyword)
-            )
-        }
+        var components = URLComponents(string: baseUrl)!
+        let baseItems: [(String, String)?] = [
+            ("key", apiKey),
+            ("format", "json"),
+            ("lat", String(latitude)),
+            ("lng", String(longitude)),
+            ("range", String(range)),
+            ("start", String(startIndex)),
+            ("count", String(fetchCount)),
+            (keyword?.isEmpty == false ? ("keyword", keyword!) : nil)
+        ]
+        components.queryItems = baseItems
+            .compactMap { $0 }
+            .map { URLQueryItem(name: $0.0, value: $0.1) }
         
         guard let url = components.url else {
             throw HotPepperAPIError.badURL

@@ -16,14 +16,8 @@ struct SearchConditionView: View {
     /// 位置情報の取得・住所変換を管理するサービス
     @EnvironmentObject var locationService: LocationService
     
-    /// 検索結果画面への遷移制御フラグ
-    @State private var showResultScreen = false
-
-    /// 検索条件と検索処理を管理する（このViewでは）
-    @StateObject private var resultViewModel = ShopSearchViewModel()
-
-    /// 位置情報が拒否/制限されたときに表示するアラート制御
-    @State private var showLocationDeniedAlert = false
+    /// 検索条件・画面状態を管理
+    @StateObject private var conditionViewModel = SearchConditionViewModel()
     @Environment(\.openURL) private var openURL
     
     // MARK: - クイック検索キーワード
@@ -78,23 +72,27 @@ struct SearchConditionView: View {
             .navigationBarTitleDisplayMode(.inline)
             .onChange(of: locationService.authorizationStatus) { _, newValue in
                 if newValue == .denied || newValue == .restricted {
-                    showLocationDeniedAlert = true
+                    conditionViewModel.showLocationDeniedAlert = true
                 }
             }
             .onAppear {
                 if locationService.authorizationStatus == .denied ||
                     locationService.authorizationStatus == .restricted {
-                    showLocationDeniedAlert = true
+                    conditionViewModel.showLocationDeniedAlert = true
                 }
             }
-
+            
             // 検索実行後に結果画面へ遷移
-            .navigationDestination(isPresented: $showResultScreen) {
-                ShopListView(
-                    viewModel: resultViewModel
-                )
+            .navigationDestination(isPresented: $conditionViewModel.showResultScreen) {
+                if let listViewModel = conditionViewModel.listViewModel {
+                    ShopListView(
+                        viewModel: listViewModel
+                    )
+                } else {
+                    EmptyView()
+                }
             }
-            .alert("位置情報がオフです", isPresented: $showLocationDeniedAlert) {
+            .alert("位置情報がオフです", isPresented: $conditionViewModel.showLocationDeniedAlert) {
                 Button("設定を開く") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         openURL(url)
@@ -210,14 +208,14 @@ struct SearchConditionView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
                 
-                TextField("例：カフェ / ラーメン / 居酒屋", text: $resultViewModel.searchKeyword)
+                TextField("例：カフェ / ラーメン / 居酒屋", text: $conditionViewModel.searchKeyword)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled(true)
                 
                 // 入力中のみクリアボタンを表示
-                if !resultViewModel.searchKeyword.isEmpty {
+                if !conditionViewModel.searchKeyword.isEmpty {
                     Button {
-                        resultViewModel.searchKeyword = ""
+                        conditionViewModel.searchKeyword = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(.secondary)
@@ -259,10 +257,10 @@ struct SearchConditionView: View {
     
     /// 距離選択チップの単体UI
     private func rangeChip(value: Int, title: String) -> some View {
-        let isSelected = (resultViewModel.searchRange == value)
+        let isSelected = (conditionViewModel.searchRange == value)
         
         return Button {
-            resultViewModel.searchRange = value
+            conditionViewModel.searchRange = value
         } label: {
             Text(title)
                 .font(.subheadline.weight(.semibold))
@@ -284,24 +282,34 @@ struct SearchConditionView: View {
                 .font(.headline)
             
             VStack(spacing: 10) {
-                HStack(spacing: 10) {
-                    ForEach(Array(quickKeywords.prefix(4)), id: \.self) { word in
-                        keywordTag(word)
-                    }
-                }
-                HStack(spacing: 10) {
-                    ForEach(Array(quickKeywords.dropFirst(4).prefix(4)), id: \.self) { word in
-                        keywordTag(word)
+                ForEach(rows(of: quickKeywords, size: 4), id: \.self) { row in
+                    HStack(spacing: 10) {
+                        ForEach(row, id: \.self) { word in
+                            keywordTag(word)
+                        }
                     }
                 }
             }
         }
     }
     
+    /// 配列を等分の行に分割
+    private func rows<T>(of array: [T], size: Int) -> [[T]] {
+        guard size > 0 else { return [array] }
+        var result: [[T]] = []
+        var index = 0
+        while index < array.count {
+            let end = min(index + size, array.count)
+            result.append(Array(array[index..<end]))
+            index += size
+        }
+        return result
+    }
+    
     /// クイックキーワード用のタグUI
     private func keywordTag(_ word: String) -> some View {
         Button {
-            resultViewModel.searchKeyword = word
+            conditionViewModel.searchKeyword = word
         } label: {
             Text(word)
                 .font(.subheadline.weight(.semibold))
@@ -319,10 +327,7 @@ struct SearchConditionView: View {
     private var searchButton: some View {
         Button {
             if let location = locationService.currentLocation {
-                Task {
-                    await resultViewModel.startSearch(from: location)
-                }
-                showResultScreen = true
+                Task { await conditionViewModel.createListAndSearch(from: location) }
             }
         } label: {
             HStack(spacing: 10) {

@@ -12,7 +12,7 @@ struct SplashView: View {
     
     var body: some View {
         ZStack {
-            // アイコン画像（アセット名: GourmetImage）
+            // アイコン画像
             Image("GourmetImage")
                 .resizable()
                 .scaledToFit()
