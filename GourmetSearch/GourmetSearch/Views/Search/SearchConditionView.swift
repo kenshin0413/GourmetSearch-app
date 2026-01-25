@@ -18,9 +18,13 @@ struct SearchConditionView: View {
     
     /// 検索結果画面への遷移制御フラグ
     @State private var showResultScreen = false
-    
+
     /// 検索条件と検索処理を管理する（このViewでは）
     @StateObject private var resultViewModel = ShopSearchViewModel()
+
+    /// 位置情報が拒否/制限されたときに表示するアラート制御
+    @State private var showLocationDeniedAlert = false
+    @Environment(\.openURL) private var openURL
     
     // MARK: - クイック検索キーワード
     
@@ -72,12 +76,33 @@ struct SearchConditionView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("グルメサーチ")
             .navigationBarTitleDisplayMode(.inline)
-            
+            .onChange(of: locationService.authorizationStatus) { _, newValue in
+                if newValue == .denied || newValue == .restricted {
+                    showLocationDeniedAlert = true
+                }
+            }
+            .onAppear {
+                if locationService.authorizationStatus == .denied ||
+                    locationService.authorizationStatus == .restricted {
+                    showLocationDeniedAlert = true
+                }
+            }
+
             // 検索実行後に結果画面へ遷移
             .navigationDestination(isPresented: $showResultScreen) {
                 ShopListView(
                     viewModel: resultViewModel
                 )
+            }
+            .alert("位置情報がオフです", isPresented: $showLocationDeniedAlert) {
+                Button("設定を開く") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        openURL(url)
+                    }
+                }
+                Button("キャンセル", role: .cancel) {}
+            } message: {
+                Text("検索には「位置情報の許可（このAppの使用中）」が必要です。設定から位置情報をオンにしてください。")
             }
         }
     }
