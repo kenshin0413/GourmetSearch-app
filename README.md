@@ -35,8 +35,8 @@ Swift 5.0
 ### 動作対象OS
 iOS 18.0 以上
 ### 動作確認端末
-iPhone 16 Pro 
-iPhone SE
+- iPhone 16 Pro   
+- iPhone SE
 
 ## 開発期間
 7日間
